@@ -38,7 +38,7 @@ The numeric simulation validates the stability and cooperative potential of simp
 - **[`donors_game-agentic.ipynb`](./donors_game-agentic.ipynb)**: Implements the Donor Game for LLM agents with strategy evolution using OpenAI's SDK.
 - **[`README.md`](./README.md)**: This readme document.
 - **[`requirements.txt`](./requirements.txt)**: Lists required dependencies for the project.
-- **[`Vallinder and Hughes - 2024 - Cultural Evolution of Cooperation among LLM Agents.pdf`](./NOTES-Vallinder%20and%20Hughes%20-%202024%20-%20Cultural%20Evolution%20of%20Cooperation%20among%20LLM%20Agents.pdf)**: Notes on the original paper.
+- **[`Vallinder and Hughes - 2024 - Cultural Evolution of Cooperation among LLM Agents.pdf`](./NOTES-Vallinder%20and%20Hughes%20-%202024%20-%20Cultural%20Evolution%20of%20Cooperation%20among%20LLM%20Agents.pdf)**: Notes on the original paper (download to see notes).
 
 ## Development Status
 The project is in active development. The next steps include:
