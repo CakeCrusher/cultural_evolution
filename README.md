@@ -5,6 +5,9 @@ This project implements the methodology outlined in the paper *Cultural Evolutio
 
 Read the paper here: [*Cultural Evolution of Cooperation among LLM Agents*](https://arxiv.org/pdf/2412.10270)
 
+## NOTE
+Currently in development but the foundations are set.
+
 This implementation consists of:
 1. **A Numeric Simulation**: A simplified representation of the Donor Game.
 2. **An Agentic Simulation**: A sophisticated model leveraging OpenAI's client SDK with structured outputs.
