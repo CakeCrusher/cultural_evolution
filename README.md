@@ -5,6 +5,9 @@ This project implements the methodology outlined in the paper *Cultural Evolutio
 
 Read the paper here: [*Cultural Evolution of Cooperation among LLM Agents*](https://arxiv.org/pdf/2412.10270)
 
+![image](https://github.com/user-attachments/assets/4df82d35-7cec-4717-9dbf-0c622fbb74be)
+_Toy run illustrating the flow of the simulation._
+
 ## NOTE
 Currently in development but the foundations are set.
 
@@ -45,7 +48,8 @@ The numeric simulation validates the stability and cooperative potential of simp
 
 ## Development Status
 The project is in active development. The next steps include:
-1. [ ] Implementing telemetry for the agentic script to improve analysis of results and facilitate troubleshooting.
+1. [x] Implementing telemetry for the agentic script to improve analysis of results and facilitate troubleshooting.
+2. [ ] Use both manual tracing and OpenAI instrumentation.
 
 ## Further Research
 - Explore hereditary single-parent taxonomies in evolutionary game theory for additional insights into strategy development.
