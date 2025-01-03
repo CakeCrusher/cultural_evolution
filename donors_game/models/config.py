@@ -15,6 +15,7 @@ class GameConfig(BaseModel):
     players: int = 12
     cutoff_threshold: float = 0.5
     save_path: str = "game_state.json"
+    model_name: str = "gpt-4o-mini"
 
 
 class GameState(GameConfig, DynamicGameState):

@@ -3,12 +3,21 @@ import openai
 import os
 from opentelemetry import trace
 from openinference.semconv.trace import SpanAttributes
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("Missing OPENAI_API_KEY")
 
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
+
+if OPENAI_BASE_URL:
+    client = openai.OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
+else:
+    client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 
 def structured_generation_wrapper(*args, **kwargs) -> dict:

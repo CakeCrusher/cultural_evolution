@@ -140,7 +140,7 @@ How many units do you give up? Very briefly think step by step about how you app
                 {"role": "user", "content": self.strategy_prompt(parents=parents)},
             ]
             args = {
-                "model": "gpt-4o-mini",
+                "model": game_state.model_name,
                 "messages": messages,
                 "response_format": StrategyBuilder,
             }
@@ -174,7 +174,7 @@ How many units do you give up? Very briefly think step by step about how you app
                 },
             ]
             args = {
-                "model": "gpt-4o-mini",
+                "model": game_state.model_name,
                 "messages": messages,
                 "response_format": DonationBuilder,
             }

@@ -1,6 +1,7 @@
 from typing import List, Tuple, Optional
 from models.config import GameState
 from game.player import Player
+from utils.misc import sanitize_filename
 from utils.telemetry import tracer
 from openinference.semconv.trace import SpanAttributes, OpenInferenceSpanKindValues
 from opentelemetry import context as context_api
@@ -30,7 +31,7 @@ class Orchestrator:
             )
             if not game_state.save_path:
                 game_state.save_path = f"g{game_state.generations}_r{game_state.rounds}_p{game_state.players}.json"
-            self.save_path = "../data/" + dir_path + game_state.save_path
+            self.save_path = f"../data/{sanitize_filename(game_state.model_name)}/" + dir_path + game_state.save_path
 
             self.history = {}
 

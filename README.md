@@ -115,19 +115,19 @@ class Decision(BaseModel):
 Here are key visualization from a replication of a run using the paper's configuration:
 
 #### Total Money in Game
-![Total Money per Round](data/g10_r12_p12/total_money_per_round.png)
+![Total Money per Round](data/gpt-4o-mini/g10_r12_p12/total_money_per_round.png)
 *Figure 1: Total money in the game system across rounds for each generation*
 
 #### Average Donation Percentage
-![Average Donation Percentage](data/g10_r12_p12/avg_donation_percentage.png)
+![Average Donation Percentage](data/gpt-4o-mini/g10_r12_p12/avg_donation_percentage.png)
 *Figure 2: Average donation percentage per round across generations*
 
 #### Maximum Donation Percentage
-![Maximum Donation Percentage](data/g10_r12_p12/max_donation_percentage.png)
+![Maximum Donation Percentage](data/gpt-4o-mini/g10_r12_p12/max_donation_percentage.png)
 *Figure 3: Highest donation percentage made in each round across generations*
 
 #### Maximum Wallet Amount
-![Maximum Wallet Amount](data/g10_r12_p12/max_wallet_amount.png)
+![Maximum Wallet Amount](data/gpt-4o-mini/g10_r12_p12/max_wallet_amount.png)
 *Figure 4: Highest wallet amount held by any player in each round across generations*
 
 ## Development Status
@@ -135,7 +135,9 @@ The project is in active development. The next steps include:
 0. [x] Round donations parallelization.
 1. [x] Implementing telemetry for the agentic script to improve analysis of results and facilitate troubleshooting.
 2. [ ] Use both manual tracing and OpenAI instrumentation.
-3. [ ] Results analysis
+3. [x] Results analysis.
+4. [ ] Use DSPy for evolution.
+5. [ ] Ollama compatible.
 
 ## Further Research
 - Explore hereditary single-parent taxonomies in evolutionary game theory for additional insights into strategy development.
