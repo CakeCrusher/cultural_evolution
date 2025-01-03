@@ -1,3 +1,5 @@
 .env
 phoenix
 .venv
+__pycache__/
+
