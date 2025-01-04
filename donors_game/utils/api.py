@@ -36,7 +36,16 @@ def structured_generation_wrapper(*args, **kwargs) -> dict:
         "response_format": kwargs["response_format"].model_json_schema(),
     }
     span.set_attribute(SpanAttributes.INPUT_VALUE, json.dumps(args_to_log))
-    res = client.beta.chat.completions.parse(**kwargs)
+    attempts = 0
+    max_attempts = 3
+    while attempts < max_attempts:
+        try:
+            res = client.beta.chat.completions.parse(**kwargs)
+            break
+        except Exception as e:
+            attempts += 1
+            if attempts == max_attempts:
+                raise e
     span.set_attribute(SpanAttributes.OUTPUT_VALUE, res.model_dump_json())
     so = res.choices[0].message.parsed
     if not so:

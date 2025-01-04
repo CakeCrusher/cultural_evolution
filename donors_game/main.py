@@ -10,9 +10,9 @@ from openinference.semconv.trace import OpenInferenceSpanKindValues
 dotenv.load_dotenv()
 
 game_state = GameState(
-    generations=3,
-    rounds=4,
-    players=6,
+    generations=10,
+    rounds=12,
+    players=12,
     save_path="dspy-game_state.json",
     # model_name="llama3.1:8b-instruct-q2_K",
 )

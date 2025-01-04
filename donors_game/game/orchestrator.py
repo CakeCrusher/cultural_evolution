@@ -185,7 +185,14 @@ class Orchestrator:
                     SpanAttributes.INPUT_VALUE,
                     json.dumps(
                         {
-                            "examples": [str(example) for example in examples],
+                            "examples": {
+                                f"example_{i}": {
+                                    "top_player_strategies": [p.strategy for p in top],
+                                    "bottom_player_strategies": [p.strategy for p in bot],
+                                    "example": str(example)
+                                }
+                                for i, ((top, bot), example) in enumerate(zip(parent_combinations, examples))
+                            },
                         }
                     )
                 )

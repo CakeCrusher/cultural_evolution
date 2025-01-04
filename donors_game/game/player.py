@@ -183,6 +183,7 @@ How many units do you give up? Very briefly think step by step about how you app
                 if not self.optimized_program:
                     raise ValueError("No optimized program found")
                 args_to_log = {
+                    "parents": [p.model_dump() for p in parents],
                     "strat_gen_instruction": self.strategy_prompt(parents=parents),
                 }
                 span.set_attribute(SpanAttributes.INPUT_VALUE, json.dumps(args_to_log))
