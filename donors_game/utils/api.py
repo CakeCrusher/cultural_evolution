@@ -4,6 +4,7 @@ import os
 from opentelemetry import trace
 from openinference.semconv.trace import SpanAttributes
 from dotenv import load_dotenv
+import dspy
 
 load_dotenv()
 
@@ -18,6 +19,13 @@ if OPENAI_BASE_URL:
     client = openai.OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
 else:
     client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+
+def dspy_client_config(model_name: str):
+    if OPENAI_BASE_URL:
+        raise ValueError("DSPy does not support custom base URLs")
+    lm = dspy.LM(f"openai/{model_name}", cache=False, temperature=1)
+    dspy.configure(lm=lm)
 
 
 def structured_generation_wrapper(*args, **kwargs) -> dict:

@@ -1,4 +1,5 @@
 import dotenv
+from game.player import Player
 from game.orchestrator import Orchestrator
 from models.config import GameState
 from openinference.semconv.trace import SpanAttributes
@@ -9,11 +10,11 @@ from openinference.semconv.trace import OpenInferenceSpanKindValues
 dotenv.load_dotenv()
 
 game_state = GameState(
-    generations=10,
-    rounds=12,
-    players=12,
-    save_path="game_state.json",
-    model_name="llama3.1:8b-instruct-q2_K",
+    generations=3,
+    rounds=4,
+    players=6,
+    save_path="dspy-game_state.json",
+    # model_name="llama3.1:8b-instruct-q2_K",
 )
 
 with tracer.start_as_current_span(f"donors_game-{game_state.model_name}-g{game_state.generations}_r{game_state.rounds}_p{game_state.players}") as span:
@@ -25,4 +26,5 @@ with tracer.start_as_current_span(f"donors_game-{game_state.model_name}-g{game_s
     except Exception as e:
         span.set_status(trace.Status(trace.StatusCode.ERROR))
         span.record_exception(e)
+        raise e
 

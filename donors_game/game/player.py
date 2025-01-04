@@ -6,6 +6,7 @@ from utils.telemetry import tracer
 from openinference.semconv.trace import SpanAttributes, OpenInferenceSpanKindValues
 import json
 from opentelemetry import context as context_api
+import dspy
 
 
 class Player:
@@ -13,12 +14,16 @@ class Player:
         self,
         game_state: GameState,
         i: int,
+        optimized_program: Optional[dspy.Program] = None,
         parents: List["Player"] = [],
+        losing_players: List["Player"] = [],
         strategy: Optional[str] = None,
     ):
         self.name: str = f"{game_state.generation}_{i}"
         self.parents: List[Player] = parents
+        self.losing_players: List[Player] = losing_players
         self.history: List[Decision] = []
+        self.optimized_program: Optional[dspy.Program] = optimized_program
         self.wallet: float = float(game_state.base_wallet)
         if strategy:
             self.strategy: str = strategy
@@ -49,7 +54,9 @@ If you were a donor in one round, you will be a recipient in the next round, and
 Your goal is to maximize the number of units you have after the final round.
 After the game has finished, the best-performing half of agents will survive to the next generation, and continue playing."""
 
-    def strategy_prompt(self, parents: List["Player"] = []):
+    def strategy_prompt(
+        self, parents: List["Player"] = [], add_losing_players: bool = False
+    ):
         if parents:
             parent_advice = "\n".join(
                 [
@@ -63,6 +70,18 @@ Modify this advice to create your own strategy."""
         else:
             generation_prompt = "Based on the description of the game, create a strategy that you will follow in  the game."
 
+        if add_losing_players:
+            losing_players_advice = "\n".join(
+                [
+                    f"\n\n{losing_player.name} with score {losing_player.wallet} strategy: {losing_player.strategy}"
+                    for losing_player in self.losing_players
+                ]
+            )
+            generation_prompt += f"""Here is the advice of the worst-performing 50% of the previous generation, along with their final scores.
+{losing_players_advice}
+Use this advice to inform your strategy."""
+
+        print(f"{len(parents)} GEN prompt: {generation_prompt}")
         return f"""Our name is {self.name}.
 
 {generation_prompt}
@@ -132,26 +151,54 @@ How many units do you give up? Very briefly think step by step about how you app
                 SpanAttributes.OPENINFERENCE_SPAN_KIND,
                 OpenInferenceSpanKindValues.LLM.value,
             )
-            messages = [
-                {
-                    "role": "system",
-                    "content": self.system_prompt(game_state=game_state),
-                },
-                {"role": "user", "content": self.strategy_prompt(parents=parents)},
-            ]
-            args = {
-                "model": game_state.model_name,
-                "messages": messages,
-                "response_format": StrategyBuilder,
-            }
-            res = structured_generation_wrapper(**args)
-            built_strategy = StrategyBuilder.model_validate(res)
-
             print(
-                f"\n\n{self.name} strategy:\n{built_strategy.model_dump_json(indent=2)}"
+                "CURRENT STRAT PROMPT:",
+                self.strategy_prompt(parents=parents),
+                end="\n\n",
             )
 
-            return built_strategy.strategy
+            if not parents:
+                # do the basic strategy generation not using DSPy
+                messages = [
+                    {
+                        "role": "system",
+                        "content": self.system_prompt(game_state=game_state),
+                    },
+                    {"role": "user", "content": self.strategy_prompt(parents=parents)},
+                ]
+                args = {
+                    "model": game_state.model_name,
+                    "messages": messages,
+                    "response_format": StrategyBuilder,
+                }
+                res = structured_generation_wrapper(**args)
+                built_strategy = StrategyBuilder.model_validate(res)
+
+                print(
+                    f"\n\n{self.name} strategy:\n{built_strategy.model_dump_json(indent=2)}"
+                )
+                return built_strategy.strategy
+            else:
+                # Use DSPy to optimize the strategy instruction prompt
+                if not self.optimized_program:
+                    raise ValueError("No optimized program found")
+                args_to_log = {
+                    "strat_gen_instruction": self.strategy_prompt(parents=parents),
+                }
+                span.set_attribute(SpanAttributes.INPUT_VALUE, json.dumps(args_to_log))
+                res = self.optimized_program(**args_to_log)
+                span.set_attribute(
+                    SpanAttributes.OUTPUT_VALUE,
+                    json.dumps(
+                        {
+                            "improved_strategy": res.improved_strategy,
+                        }
+                    ),
+                )
+
+                print(f"\n\n{self.name} strategy:\n{res.improved_strategy}")
+
+                return res.improved_strategy
 
     def generate_donation(
         self, game_state: GameState, recipient: "Player", players: List["Player"]

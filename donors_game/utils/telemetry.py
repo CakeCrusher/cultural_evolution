@@ -23,7 +23,7 @@ if (
 
 endpoint = PHOENIX_COLLECTOR_ENDPOINT + "/v1/traces"
 
-project_name = "donors_game"
+project_name = "dspy_donors_game"
 
 tracer_provider = register(project_name=project_name, endpoint=endpoint)
 

@@ -1,5 +1,6 @@
 from typing import List
 from pydantic import BaseModel, Field
+import dspy
 
 
 class StrategyBuilder(BaseModel):
@@ -26,3 +27,9 @@ class DonationBuilder(BaseModel):
         ...,
         description="The percentage amount of resources to donate. MUST BE A FLOAT BETWEEN 0 AND 1.",
     )
+
+
+class NewStrategy(dspy.Signature):
+    strat_gen_instruction: str = dspy.InputField()
+    improved_strategy: str = dspy.OutputField(desc="New strategy that is better than the top strategies")
+

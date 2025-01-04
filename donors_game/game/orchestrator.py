@@ -1,14 +1,17 @@
 from typing import List, Tuple, Optional
 from models.config import GameState
+from models.signatures import NewStrategy
 from game.player import Player
-from utils.misc import sanitize_filename
+from utils.misc import create_unique_subset_pairs, sanitize_filename, strategy_metric
 from utils.telemetry import tracer
+from utils.api import dspy_client_config
 from openinference.semconv.trace import SpanAttributes, OpenInferenceSpanKindValues
 from opentelemetry import context as context_api
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor
 import random
+import dspy
 
 
 class Orchestrator:
@@ -31,7 +34,13 @@ class Orchestrator:
             )
             if not game_state.save_path:
                 game_state.save_path = f"g{game_state.generations}_r{game_state.rounds}_p{game_state.players}.json"
-            self.save_path = f"../data/{sanitize_filename(game_state.model_name)}/" + dir_path + game_state.save_path
+            self.save_path = (
+                f"../data/{sanitize_filename(game_state.model_name)}/"
+                + dir_path
+                + game_state.save_path
+            )
+
+            dspy_client_config(game_state.model_name)
 
             self.history = {}
 
@@ -135,6 +144,69 @@ class Orchestrator:
             top_half = self.players[
                 : int(len(self.players) * self.game_state.cutoff_threshold)
             ]
+            lower_half = self.players[
+                int(len(self.players) * self.game_state.cutoff_threshold) :
+            ]
+
+            parent_combinations = create_unique_subset_pairs(
+                top_half, lower_half, num_combinations=10
+            )
+
+            demo_player = Player(
+                game_state=self.game_state,
+                i=0,
+                parents=top_half,
+                strategy=top_half[0].strategy,
+            )
+
+            examples = []
+            for top, bot in parent_combinations:
+                demo_player.parents = top
+                demo_player.losing_players = bot
+                built_strategy_prompt = demo_player.strategy_prompt(
+                    parents=top, add_losing_players=True
+                )
+                example = dspy.Example(
+                    strat_gen_instruction=built_strategy_prompt,
+                    improved_strategy=top_half[0].strategy,
+                ).with_inputs("strat_gen_instruction")
+                examples.append(example)
+            # # TEMP DELETE
+            # examples *= 10
+
+            print(f"Examples: {len(examples)}")
+
+            with tracer.start_as_current_span("evolve_improved_strategy") as span:
+                span.set_attribute(
+                    SpanAttributes.OPENINFERENCE_SPAN_KIND,
+                    OpenInferenceSpanKindValues.CHAIN.value
+                )
+                span.set_attribute(
+                    SpanAttributes.INPUT_VALUE,
+                    json.dumps(
+                        {
+                            "examples": [str(example) for example in examples],
+                        }
+                    )
+                )
+
+                teleprompter = dspy.MIPROv2(
+                    metric=strategy_metric, num_threads=24, max_bootstrapped_demos=3
+                )
+                program = dspy.Predict(NewStrategy)
+
+                optimized_program = teleprompter.compile(
+                    program,
+                    trainset=examples,
+                    minibatch_size=4,
+                    requires_permission_to_run=False,
+                )
+
+                span.set_attribute(
+                    SpanAttributes.OUTPUT_VALUE,
+                    json.dumps(optimized_program.dump_state(), indent=2),
+                )
+
             # clone players
             top_players_strings = "\n".join(
                 [
@@ -144,7 +216,12 @@ class Orchestrator:
             )
             print(f"\n\nTop half:\n{top_players_strings}")
             self.players = [
-                Player(game_state=self.game_state, i=i, parents=top_half)
+                Player(
+                    game_state=self.game_state,
+                    i=i,
+                    optimized_program=optimized_program,
+                    parents=top_half,
+                )
                 for i in range(self.game_state.players)
             ]
 
